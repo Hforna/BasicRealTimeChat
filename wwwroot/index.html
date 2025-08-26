@@ -3,406 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Chat Hub</title>
+    <title>Real-Time Chat - SignalR</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #5b6bff;
-            --primary-dark: #4a5ae9;
-            --secondary-color: #8e99ff;
-            --light-bg: #f8f9ff;
-            --dark-bg: #1f2937;
-            --light-text: #f3f4f6;
-            --dark-text: #1f2937;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --info-color: #3b82f6;
-            --border-radius: 12px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s ease;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, var(--light-bg) 0%, #e0e7ff 100%);
-            color: var(--dark-text);
-            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 20px;
-            height: calc(100vh - 40px);
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
             padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            height: 100vh;
+        }
+
+        .header {
             grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--dark-bg);
-            color: white;
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            grid-column: 1 / -1;
-        }
+            .header h1 {
+                text-align: center;
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                background: linear-gradient(45deg, #fff, #e0c3fc);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
 
         .connection-status {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
+            margin-top: 10px;
         }
 
         .status-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: var(--danger-color);
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            background: #ff4757;
             animation: pulse 2s infinite;
         }
 
         .connected .status-dot {
-            background-color: var(--success-color);
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            background: #2ed573;
         }
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                opacity: 1;
             }
 
-            70% {
-                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            50% {
+                opacity: 0.5;
             }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                opacity: 1;
             }
-        }
-
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .username {
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 5px 12px;
-            border-radius: 20px;
         }
 
         .sidebar {
-            background-color: white;
-            border-radius: var(--border-radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
-        .content {
-            background-color: white;
-            border-radius: var(--border-radius);
-            padding: 0;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        .section {
+            margin-bottom: 30px;
         }
 
-        .section-title {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--light-bg);
-            color: var(--primary-color);
+            .section h2 {
+                font-size: 1.4rem;
+                margin-bottom: 15px;
+                color: #e0c3fc;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .input-group {
             display: flex;
-            align-items: center;
             gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-            .section-title i {
-                font-size: 1.2rem;
+            .input-group input {
+                flex: 1;
+                min-width: 150px;
+                padding: 12px 16px;
+                border: none;
+                border-radius: 25px;
+                background: rgba(255, 255, 255, 0.2);
+                color: #fff;
+                font-size: 14px;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transition: all 0.3s ease;
             }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+                .input-group input::placeholder {
+                    color: rgba(255, 255, 255, 0.7);
+                }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark-bg);
-        }
+                .input-group input:focus {
+                    outline: none;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-color: #e0c3fc;
+                    box-shadow: 0 0 20px rgba(224, 195, 252, 0.3);
+                }
 
-        input {
-            padding: 12px 15px;
-            border-radius: var(--border-radius);
-            border: 2px solid #e5e7eb;
-            width: 100%;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-            input:focus {
-                outline: none;
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 3px rgba(91, 107, 255, 0.2);
-            }
-
-        button {
+        .btn {
             padding: 12px 20px;
-            border-radius: var(--border-radius);
             border: none;
+            border-radius: 25px;
             cursor: pointer;
-            transition: var(--transition);
             font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-            button:hover {
+            .btn:hover {
                 transform: translateY(-2px);
-            }
-
-            button:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             }
 
         .btn-primary {
-            background-color: var(--primary-color);
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
         }
-
-            .btn-primary:hover {
-                background-color: var(--primary-dark);
-            }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-
-            .btn-danger:hover {
-                background-color: #dc2626;
-            }
 
         .btn-success {
-            background-color: var(--success-color);
+            background: linear-gradient(45deg, #2ed573, #17a085);
             color: white;
         }
 
-            .btn-success:hover {
-                background-color: #059669;
-            }
-
         .btn-secondary {
-            background-color: #e5e7eb;
-            color: var(--dark-text);
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
         }
 
-            .btn-secondary:hover {
-                background-color: #d1d5db;
-            }
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            color: white;
+        }
+
+        .username-display {
+            background: linear-gradient(45deg, #2ed573, #17a085);
+            padding: 10px 15px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
 
         .groups-list {
             list-style: none;
-            margin-top: 15px;
+            max-height: 300px;
             overflow-y: auto;
-            flex: 1;
         }
 
         .group-item {
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
             padding: 15px;
-            border-bottom: 1px solid #f3f4f6;
+            border-radius: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: var(--transition);
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
 
             .group-item:hover {
-                background-color: #f9fafb;
-            }
-
-            .group-item:last-child {
-                border-bottom: none;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
             }
 
         .group-actions {
             display: flex;
-            gap: 8px;
+            gap: 5px;
+            flex-wrap: wrap;
         }
 
         .group-btn {
-            width: auto;
-            padding: 8px 12px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 15px;
+        }
+
+        .chat-header {
+            padding: 25px;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .current-group {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #e0c3fc;
         }
 
         .messages-container {
             flex: 1;
-            overflow-y: auto;
             padding: 20px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            background-color: #f9fafb;
+            gap: 15px;
         }
 
         .message {
-            margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 18px;
-            background-color: white;
-            max-width: 80%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            animation: fadeIn 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .my-message {
+            align-self: flex-end;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
         }
 
         .message-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-            color: #6b7280;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
         .message-sender {
-            font-weight: bold;
-            color: var(--primary-color);
+            font-weight: 600;
+            color: #e0c3fc;
         }
 
         .message-time {
-            color: #9ca3af;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .message-text {
-            line-height: 1.4;
-            word-break: break-word;
+            word-wrap: break-word;
+            line-height: 1.5;
         }
 
-        .my-message {
-            background-color: var(--primary-color);
-            color: white;
-            align-self: flex-end;
+        .message-input-area {
+            padding: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            backdrop-filter: blur(10px);
         }
 
-            .my-message .message-sender {
-                color: #e0e7ff;
-            }
-
-            .my-message .message-time {
-                color: #e0e7ff;
-            }
-
-        .message-form {
+        .message-input-group {
             display: flex;
-            gap: 12px;
-            padding: 20px;
-            background-color: white;
-            border-top: 1px solid #e5e7eb;
+            gap: 15px;
+            align-items: stretch;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .message-input {
-            flex: 1;
-        }
-
-        .send-btn {
-            width: 120px;
-        }
-
-        .group-info {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 20px;
-        }
-
-        .info-item {
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-            .info-item:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
+            .message-input-group:focus-within {
+                border-color: #e0c3fc;
+                box-shadow: 0 4px 25px rgba(224, 195, 252, 0.3);
+                background: rgba(255, 255, 255, 0.15);
             }
 
-        .info-label {
-            font-weight: 600;
-            opacity: 0.9;
+            .message-input-group input {
+                flex: 1;
+                border: none;
+                background: transparent;
+                color: #fff;
+                font-size: 15px;
+                padding: 15px 20px;
+                border-radius: 25px;
+                outline: none;
+                font-family: inherit;
+                font-weight: 400;
+            }
+
+                .message-input-group input::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
+                    font-style: italic;
+                }
+
+                .message-input-group input:disabled {
+                    color: rgba(255, 255, 255, 0.4);
+                    cursor: not-allowed;
+                }
+
+                    .message-input-group input:disabled::placeholder {
+                        color: rgba(255, 255, 255, 0.3);
+                    }
+
+            .message-input-group .btn {
+                border-radius: 22px;
+                padding: 12px 24px;
+                font-weight: 700;
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+                font-size: 13px;
+                box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+                position: relative;
+                overflow: hidden;
+            }
+
+                .message-input-group .btn:hover:not(:disabled) {
+                    transform: translateY(-1px);
+                    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+                }
+
+                .message-input-group .btn:disabled {
+                    opacity: 0.5;
+                    transform: none;
+                    cursor: not-allowed;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .message-input-group .btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                    transition: left 0.5s;
+                }
+
+                .message-input-group .btn:hover:not(:disabled)::before {
+                    left: 100%;
+                }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+            margin: 50px 0;
         }
+
+            .empty-state i {
+                font-size: 3rem;
+                margin-bottom: 15px;
+                display: block;
+                color: rgba(255, 255, 255, 0.4);
+            }
 
         .alert {
-            padding: 12px 16px;
-            border-radius: var(--border-radius);
+            padding: 15px 20px;
+            border-radius: 10px;
             margin-bottom: 15px;
             display: none;
+            font-weight: 500;
             animation: slideIn 0.3s ease;
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-20px);
             }
 
             to {
@@ -412,162 +424,265 @@
         }
 
         .alert-error {
-            background-color: #fee2e2;
-            color: var(--danger-color);
-            border: 1px solid #fecaca;
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            border: 1px solid rgba(255, 71, 87, 0.5);
         }
 
         .alert-success {
-            background-color: #d1fae5;
-            color: var(--success-color);
-            border: 1px solid #a7f3d0;
+            background: linear-gradient(45deg, #2ed573, #17a085);
+            border: 1px solid rgba(46, 213, 115, 0.5);
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6b7280;
-        }
-
-            .empty-state i {
-                font-size: 3rem;
-                margin-bottom: 15px;
-                color: #d1d5db;
-            }
-
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid #e5e7eb;
+        .info-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            background-color: white;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .chat-title {
-            font-size: 1.5rem;
+        .info-label {
+            color: #e0c3fc;
             font-weight: 600;
-            color: var(--primary-color);
         }
 
-        .leave-btn {
-            padding: 8px 16px;
-            font-size: 0.9rem;
-        }
-
+        /* Responsive Design */
         @media (max-width: 1024px) {
             .container {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
                 grid-template-columns: 1fr;
-                height: auto;
+                grid-template-rows: auto auto 1fr;
+                padding: 10px;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .sidebar {
+                order: 2;
+                max-height: 400px;
+            }
+
+            .main-content {
+                order: 3;
+                min-height: 60vh;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+                .input-group input {
+                    min-width: 100%;
+                }
+
+            .message {
+                max-width: 85%;
+            }
+
+            .group-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .group-actions {
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .message-input-group {
+                flex-direction: column;
+                gap: 12px;
+                padding: 15px;
+                border-radius: 20px;
+            }
+
+                .message-input-group input {
+                    text-align: center;
+                    padding: 18px;
+                    border-radius: 15px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+
+                .message-input-group .btn {
+                    align-self: stretch;
+                    justify-content: center;
+                    padding: 15px;
+                    border-radius: 15px;
+                }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+                gap: 10px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+                .header h1 {
+                    font-size: 1.5rem;
+                }
+
+            .sidebar, .main-content {
+                padding: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.2rem;
             }
 
             .message {
-                max-width: 90%;
+                max-width: 95%;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 13px;
             }
         }
 
-        /* Scrollbar styling */
+        /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #c5c5c5;
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
         }
 
             ::-webkit-scrollbar-thumb:hover {
-                background: #a5a5a5;
+                background: rgba(255, 255, 255, 0.5);
             }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
-<script defer src="/main.f22602ae481293669872.js"></script></head>
+<script defer src="/main.0ccdf8be4c1b7530a07d.js"></script></head>
 <body>
     <div class="container">
-        <header>
-            <h1><i class="fas fa-comments"></i> Group Chat Hub</h1>
-            <p class="subtitle">Real-time group messaging with SignalR & Redis</p>
-        </header>
-
-        <div class="status-bar">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-comments"></i> Real-Time Chat</h1>
             <div class="connection-status">
                 <div class="status-dot"></div>
-                <span id="status-text">Disconnected</span>
-            </div>
-            <div class="user-section">
-                <span>Welcome, </span>
-                <span id="username-display" class="username">Guest</span>
+                <span id="status-text">Connecting...</span>
             </div>
         </div>
 
-        <div class="alert alert-error" id="error-alert"></div>
-        <div class="alert alert-success" id="success-alert"></div>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Alerts -->
+            <div id="error-alert" class="alert alert-error"></div>
+            <div id="success-alert" class="alert alert-success"></div>
 
-        <aside class="sidebar">
-            <h2 class="section-title"><i class="fas fa-user"></i> User Setup</h2>
-            <div class="form-group">
-                <label for="username-input">Your Username</label>
-                <input type="text" id="username-input" placeholder="Enter your username">
-            </div>
-            <button id="set-username-btn" class="btn-success">
-                <i class="fas fa-check"></i> Set Username
-            </button>
-
-            <h2 class="section-title" style="margin-top: 30px;"><i class="fas fa-plus-circle"></i> Create Group</h2>
-            <div class="form-group">
-                <label for="groupname-input">Group Name</label>
-                <input type="text" id="groupname-input" placeholder="Enter group name">
-            </div>
-            <button id="create-group-btn" class="btn-primary">
-                <i class="fas fa-plus"></i> Create Group
-            </button>
-
-            <h2 class="section-title" style="margin-top: 30px;"><i class="fas fa-users"></i> Available Groups</h2>
-            <button id="refresh-groups-btn" class="btn-secondary">
-                <i class="fas fa-sync-alt"></i> Refresh Groups
-            </button>
-            <ul class="groups-list" id="groups-list">
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <p>No groups available yet</p>
+            <!-- Username Section -->
+            <div class="section">
+                <h2><i class="fas fa-user"></i> Username</h2>
+                <div id="username-display" class="username-display" style="display: none;">
+                    Not Set
                 </div>
-            </ul>
-        </aside>
+                <div class="input-group">
+                    <input type="text" id="username-input" placeholder="Enter your username" maxlength="20">
+                    <button id="set-username-btn" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Set
+                    </button>
+                </div>
+            </div>
 
-        <main class="content">
+            <!-- Create Group Section -->
+            <div class="section">
+                <h2><i class="fas fa-plus"></i> Create Group</h2>
+                <div class="input-group">
+                    <input type="text" id="groupname-input" placeholder="Group name" maxlength="30">
+                    <button id="create-group-btn" class="btn btn-success">
+                        <i class="fas fa-plus-circle"></i> Create
+                    </button>
+                </div>
+            </div>
+
+            <!-- Available Groups -->
+            <div class="section">
+                <h2>
+                    <i class="fas fa-users"></i> Available Groups
+                    <button id="refresh-groups-btn" class="btn btn-secondary" style="margin-left: auto; padding: 6px 12px; font-size: 12px;">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </h2>
+                <ul id="groups-list" class="groups-list">
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>Loading groups...</p>
+                    </div>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <!-- Chat Header -->
             <div class="chat-header">
-                <h2 class="chat-title">Group: <span id="current-group">None</span></h2>
-                <button id="leave-group-btn" class="btn-danger leave-btn" disabled>
+                <div class="current-group">
+                    Current Group: <span id="current-group">None</span>
+                </div>
+                <div id="group-info">
+                    <p>Select a group to view information and messages</p>
+                </div>
+                <button id="leave-group-btn" class="btn btn-danger" disabled style="margin-top: 10px;">
                     <i class="fas fa-sign-out-alt"></i> Leave Group
                 </button>
             </div>
 
-            <div class="group-info" id="group-info">
-                <p>Select a group to view information and messages</p>
-            </div>
-
-            <div class="messages-container" id="messages-container">
+            <!-- Messages Container -->
+            <div id="messages-container" class="messages-container">
                 <div class="empty-state">
                     <i class="fas fa-comment"></i>
                     <p>Join a group to start messaging</p>
                 </div>
             </div>
 
-            <div class="message-form">
-                <input type="text" id="message-input" class="message-input" placeholder="Type your message here..." disabled>
-                <button id="send-message-btn" class="btn-primary send-btn" disabled>
-                    <i class="fas fa-paper-plane"></i> Send
-                </button>
+            <!-- Message Input Area -->
+            <div class="message-input-area">
+                <div class="message-input-group">
+                    <input type="text" id="message-input" placeholder="Type your message here..." disabled maxlength="500">
+                    <button id="send-message-btn" class="btn btn-primary" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Send</span>
+                    </button>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
-
-    <!-- Include SignalR client library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.17/signalr.min.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>
