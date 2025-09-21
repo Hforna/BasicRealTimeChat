@@ -72,11 +72,13 @@ function initConnection() {
         .then(() => {
             updateConnectionStatus(true);
             showSuccess('Connected to server');
+            getAvailableGroups(); // <-- chama aqui, seguro
         })
         .catch(err => {
             console.error(normalizeErrorException(err));
             showError('Connection failed: ' + normalizeErrorException(err));
         });
+
 }
 
 // Update connection status UI
@@ -434,9 +436,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Leave group
     leaveGroupBtn.addEventListener('click', leaveGroup);
-
-    // Initial groups load
-    setTimeout(getAvailableGroups, 1000);
 });
 
 function normalizeErrorException(err: any): string {
