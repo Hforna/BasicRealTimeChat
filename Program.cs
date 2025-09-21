@@ -25,6 +25,7 @@ namespace Scaffold.Web
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    
                     webBuilder.UseStartup<Startup>();
                 });
     }
