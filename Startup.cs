@@ -35,7 +35,7 @@ namespace Scaffold.Web
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             app.UseRouting();
 
             app.UseDefaultFiles(); //index.html

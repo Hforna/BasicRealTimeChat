@@ -18,6 +18,12 @@ namespace Scaffold.Web
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                          .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true)
+                          .AddEnvironmentVariables();
+                })
                 .ConfigureLogging(cfg =>
                 {
                     cfg.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Trace);
@@ -25,7 +31,6 @@ namespace Scaffold.Web
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    
                     webBuilder.UseStartup<Startup>();
                 });
     }
