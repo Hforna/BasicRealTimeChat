@@ -104,7 +104,10 @@ public class GroupHub : Hub
         var userGroups = new List<string>() { group };
 
         if(inAnyGroup)
-            userGroups.AddRange(JsonSerializer.Deserialize<List<string>>(userGroupsObj.ToString()));
+        {
+            var existingGroups = JsonSerializer.Deserialize<List<string>>(userGroupsObj.ToString());
+            userGroups.AddRange(existingGroups);
+        }
 
         this.Context.Items["groups"] = JsonSerializer.Serialize(userGroups);
 
@@ -136,7 +139,7 @@ public class GroupHub : Hub
             throw new HubException("User is not in this group");
 
         deserializeGroups.Remove(groupName);
-        this.Context.Items["groups"] =  deserializeGroups;
+        this.Context.Items["groups"] = JsonSerializer.Serialize(deserializeGroups);
 
         var groupInfos = await GetGroupInfos(groupName);
         groupInfos.totalUsers--;
