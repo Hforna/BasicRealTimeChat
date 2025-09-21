@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Scaffold.Web
 {
@@ -26,6 +27,14 @@ namespace Scaffold.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+
+            var options = ConfigurationOptions.Parse(_configuration.GetConnectionString("redis"));
+            options.ConnectRetry = 5;
+            options.ConnectTimeout = 10000;
+            options.SyncTimeout = 10000;
+            options.KeepAlive = 60;
+            var multiplexer = ConnectionMultiplexer.Connect(options);
+            services.AddSingleton(multiplexer.GetDatabase());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

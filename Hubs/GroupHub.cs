@@ -15,9 +15,9 @@ public class GroupHub : Hub
     public const string GroupAvaliableKey = "group:avaliable";
     public const string GroupInfosKey = "group:infos";
 
-    public GroupHub(IConfiguration configuration)
+    public GroupHub(IDatabase redis)
     {
-        _redis = ConnectionMultiplexer.Connect(configuration.GetConnectionString("redis")).GetDatabase();
+        _redis = redis;
     }
 
     public string SetUserName(string userName)
