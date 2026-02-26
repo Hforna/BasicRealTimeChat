@@ -1,18 +1,64 @@
-
 trigger:
- - master
+  - master
 
 variables:
   pool: Default
 
-
 stages:
-  - stage: build
+  - stage: Build
     jobs:
-      - job: buildCompose
-        displayName: 'Build Compose'
+      - job: BuildJob
+        displayName: 'Build'
         pool: $(pool)
         steps:
-          - task: DotNetCoreCLI@2
+          - task: UseNode@1
             inputs:
-              command: 'build'
+              version: '20.x'
+
+          - script: |
+              cd client
+              npm install
+              npm run build
+            displayName: 'Build Frontend'
+
+          - task: UseDotNet@2
+            inputs:
+              packageType: sdk
+              version: '8.0.x'
+
+          - task: DotNetCoreCLI@2
+            displayName: Publish
+            inputs:
+              command: publish
+              publishWebProjects: true
+              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+              zipAfterPublish: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'drop'
+
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+      - job: DeployJob
+        displayName: 'Deploy'
+        pool: $(pool)
+        steps:
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureWebApp@1
+            displayName: Deploy to Azure
+            inputs:
+              azureSubscription: 'asc'
+              appType: 'webAppLinux'
+              appName: 'signalRChat'
+              resourceGroupName: 'chat_group'
+              package: '$(System.ArtifactsDirectory)/drop/**/*.zip'
+              runtimeStack: 'DOTNETCORE|8.0'
